@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.blog.app.entity.comment.Comment;
 
-import java.util.Queue;
+import java.util.List;
 
 @Getter
 @Setter
@@ -26,5 +26,5 @@ public class PostResponseDto {
 
     private String tags;
 
-    private Queue<Comment> comments;
+    private List<Comment> comments;
 }

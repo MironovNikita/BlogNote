@@ -50,6 +50,7 @@ public class PostMapper {
         postRsDto.setText(post.getText());
         postRsDto.setImageBase64(Base64.getEncoder().encodeToString(post.getImageData()));
         postRsDto.setLikesCount(post.getLikesCount());
+        postRsDto.setComments(post.getComments());
         return postRsDto;
     }
 

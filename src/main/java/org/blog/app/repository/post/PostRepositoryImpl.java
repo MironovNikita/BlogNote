@@ -41,8 +41,8 @@ public class PostRepositoryImpl implements PostRepository {
     //TODO В методе сервиса будет проверка на существование этого самого Post, поэтому метод будет принимать два поста. Одна сущность - это пост с новыми данными, а вторая со старыми
     @Override
     public void update(Post postToUpdate, Post existingPost) {
-        if (postToUpdate.getTitle() != null) existingPost.setTitle(postToUpdate.getTitle());
-        if (postToUpdate.getText() != null) existingPost.setText(postToUpdate.getText());
+        if (postToUpdate.getTitle() != null && !postToUpdate.getTitle().isBlank()) existingPost.setTitle(postToUpdate.getTitle());
+        if (postToUpdate.getText() != null && !postToUpdate.getText().isBlank()) existingPost.setText(postToUpdate.getText());
         if (postToUpdate.getImageData() != null) existingPost.setImageData(postToUpdate.getImageData());
         if (postToUpdate.getTags() != null) existingPost.setTags(postToUpdate.getTags());
 

@@ -63,11 +63,9 @@ public class PostServiceImpl {
             throw new ObjectNotFoundException("Пост", id);
         }
 
-        existingPost.setTags(tagRepository.getTagsByPostId(existingPost.getId()));
-        PostResponseDto postRsDto = postMapper.toPostRsDto(existingPost);
-        //TODO По той же логике добавить комментарии
-        // postRsDto.setComments();
-        return postRsDto;
+        existingPost.setTags(tagRepository.getTagsByPostId(id));
+        existingPost.setComments(commentRepository.getAllByPostId(id));
+        return postMapper.toPostRsDto(existingPost);
     }
 
     @Transactional

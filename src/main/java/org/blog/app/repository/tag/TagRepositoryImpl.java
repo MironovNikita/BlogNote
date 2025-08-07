@@ -8,7 +8,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.PreparedStatement;
 import java.util.*;
 
-//TODO Добавить интерфейс
 @Repository
 @RequiredArgsConstructor
 public class TagRepositoryImpl implements TagRepository {
