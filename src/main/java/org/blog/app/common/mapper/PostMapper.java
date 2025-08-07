@@ -27,7 +27,6 @@ public class PostMapper {
         } catch (IOException exception) {
             throw new ObjectCreationException("Пост", "изображение поста");
         }
-        post.setLikesCount(0L);
 
         if (postRqDto.getTags() != null && !postRqDto.getTags().isBlank()) {
             post.setTags(handlePostTags(postRqDto.getTags()));

@@ -2,9 +2,12 @@ package org.blog.app.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.blog.app.common.mapper.PostMapper;
 import org.blog.app.entity.post.Post;
 import org.blog.app.entity.post.PostRequestDto;
 import org.blog.app.entity.post.PostResponseDto;
+import org.blog.app.service.image.ImageService;
+import org.blog.app.service.post.PostService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -22,12 +25,14 @@ public class PostController {
 
     private final PostService postService;
     private final ImageService imageService;
+    private final PostMapper postMapper;
 
     @GetMapping("/")
     public String postsRedirect() {
         return "redirect:/posts";
     }
 
+    /**
     @GetMapping("/posts")
     public String postsPage(
             @RequestParam(required = false, defaultValue = "") String search,
@@ -35,7 +40,7 @@ public class PostController {
             @RequestParam(required = false, defaultValue = "1") int pageNumber,
             Model model
     ) {
-        List<Post> posts = postService.findPosts(search, pageSize, pageNumber);
+        List<Post> posts = postService.getAllByParams(search, pageSize, pageNumber);
         // Для определения есть ли следующая и предыдущая страницы, можно проверить общее число постов или отдать это вместе с постами
         boolean hasNext = postService.hasNextPage(search, pageSize, pageNumber);
         boolean hasPrevious = pageNumber > 1;
@@ -54,10 +59,11 @@ public class PostController {
 
         return "posts";
     }
+     */
 
     @GetMapping("/posts/{id}")
     public String get(@PathVariable("id") Long id, Model model) {
-        PostResponseDto postRs = postService.getPost(id);
+        PostResponseDto postRs = postMapper.toPostRsDto(postService.getById(id));
         model.addAttribute("post", postRs);
 
         return "post";
@@ -70,7 +76,7 @@ public class PostController {
 
     @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public String create(@ModelAttribute @Valid PostRequestDto postRqDto) {
-        var createdPostId = postService.createPost(postRqDto);
+        var createdPostId = postService.create(postRqDto);
         return "redirect:/posts/" + createdPostId;
     }
 
@@ -78,10 +84,9 @@ public class PostController {
     public ResponseEntity<byte[]> getImageBytes(@PathVariable("id") Long id) {
         byte[] imageBytes = imageService.getImageBytesByPostId(id);
 
-        //TODO Перенести логику в сервис
-        //if (imageBytes == null || imageBytes.length == 0) {
-        //    return ResponseEntity.notFound().build();
-        //}
+        if (imageBytes == null || imageBytes.length == 0) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)  // MediaType.IMAGE_PNG и т.п.
@@ -91,7 +96,7 @@ public class PostController {
     @PostMapping("/posts/{id}/like")
     public String changeRating(@PathVariable("id") Long postId, @RequestParam("like") Boolean isLike) {
 
-        postService.changeRating(postId, isLike);
+        postService.changeRating(isLike, postId);
         return "redirect:/posts/" + postId;
     }
 
@@ -103,7 +108,7 @@ public class PostController {
 
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable Long id, Model model) {
-        PostResponseDto post = postService.getPost(id);
+        PostResponseDto post = postMapper.toPostRsDto(postService.getById(id));
 
         model.addAttribute("post", post);
         return "post-add";

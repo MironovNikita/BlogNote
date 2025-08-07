@@ -3,6 +3,7 @@ package org.blog.app.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.blog.app.entity.comment.CommentDto;
+import org.blog.app.service.comment.CommentService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;

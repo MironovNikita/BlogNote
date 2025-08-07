@@ -10,7 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 //TODO Вынести @Transactional в слой сервиса!!!
 @Repository
@@ -41,8 +43,10 @@ public class PostRepositoryImpl implements PostRepository {
     //TODO В методе сервиса будет проверка на существование этого самого Post, поэтому метод будет принимать два поста. Одна сущность - это пост с новыми данными, а вторая со старыми
     @Override
     public void update(Post postToUpdate, Post existingPost) {
-        if (postToUpdate.getTitle() != null && !postToUpdate.getTitle().isBlank()) existingPost.setTitle(postToUpdate.getTitle());
-        if (postToUpdate.getText() != null && !postToUpdate.getText().isBlank()) existingPost.setText(postToUpdate.getText());
+        if (postToUpdate.getTitle() != null && !postToUpdate.getTitle().isBlank())
+            existingPost.setTitle(postToUpdate.getTitle());
+        if (postToUpdate.getText() != null && !postToUpdate.getText().isBlank())
+            existingPost.setText(postToUpdate.getText());
         if (postToUpdate.getImageData() != null) existingPost.setImageData(postToUpdate.getImageData());
         if (postToUpdate.getTags() != null) existingPost.setTags(postToUpdate.getTags());
 
@@ -62,8 +66,8 @@ public class PostRepositoryImpl implements PostRepository {
     //TODO Дописать комментарии в поиск и теги (в сервисе) + может выбрасывать исключение EmptyResultDataAccessException e
     // 3 отдельных репо: комменты, посты и теги
     @Override
-    public Post getById(Long id) {
-        return jdbcTemplate.queryForObject(
+    public Optional<Post> getById(Long id) {
+        return Optional.of(jdbcTemplate.queryForObject(
                 "SELECT * FROM posts WHERE id = ?", (rs, rowNum) -> {
                     Post post = new Post();
                     post.setId(rs.getLong("id"));
@@ -72,15 +76,15 @@ public class PostRepositoryImpl implements PostRepository {
                     post.setImageData(rs.getBytes("imageData"));
                     post.setLikesCount(rs.getLong("likesCount"));
                     return post;
-                }, id);
+                }, id));
     }
 
     //TODO При get-методах добавить Optional для безопасности!
-    /**
-     *
-     * Post existingPost = postRepository.getLikes(id)
-     *                               .orElseThrow(() -> new ObjectNotFoundException("Пост", id));
-     */
+
+    //public List<Post> getAllByParams(String search, int pageSize, int pageNumber) {
+        //jdbcTemplate.queryForList()
+    //}
+
     public Post getLikes(Long id) {
         return jdbcTemplate.queryForObject(
                 "SELECT id, likesCount FROM POSTS WHERE id = ?", (rs, rowNum) -> {
@@ -92,8 +96,8 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     //TODO getall пока под вопросом (пропустил)
-    // Добавить удаление комментариев и тегов - естественно перед этим проверять, есть ли такой пост под таким ID
-    // Это не нужно, т.к. есть ON DELETE CASCADE
+
+
     @Override
     public void delete(Long id) {
         jdbcTemplate.update("DELETE FROM posts WHERE id = ?", id);
