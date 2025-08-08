@@ -32,7 +32,7 @@ public class CommentRepositoryImpl implements CommentRepository {
                 }, keyHolder
         );
 
-        var commentId = Objects.requireNonNull(keyHolder.getKey().longValue());
+        Long commentId = (Long) Objects.requireNonNull(keyHolder.getKeys()).get("id");
 
         jdbcTemplate.update("INSERT INTO posts_comments (post_id, comment_id) VALUES (?, ?)",
                 postId,
@@ -60,7 +60,7 @@ public class CommentRepositoryImpl implements CommentRepository {
                     comment.setId(rs.getLong("id"));
                     comment.setText(rs.getString("text"));
                     return comment;
-                });
+                }, postId);
     }
 
     @Override

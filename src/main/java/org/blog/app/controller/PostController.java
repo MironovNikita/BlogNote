@@ -3,7 +3,7 @@ package org.blog.app.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.blog.app.common.mapper.PostMapper;
-import org.blog.app.entity.post.Post;
+import org.blog.app.entity.paging.Paging;
 import org.blog.app.entity.post.PostRequestDto;
 import org.blog.app.entity.post.PostResponseDto;
 import org.blog.app.service.image.ImageService;
@@ -14,10 +14,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+@Valid
 @Controller
 @RequestMapping
 @RequiredArgsConstructor
@@ -27,39 +26,41 @@ public class PostController {
     private final ImageService imageService;
     private final PostMapper postMapper;
 
+    //ЗДЕСЬ ВСЁ НОРМАЛЬНО
     @GetMapping("/")
     public String postsRedirect() {
         return "redirect:/posts";
     }
 
-    /**
+
     @GetMapping("/posts")
     public String postsPage(
-            @RequestParam(required = false, defaultValue = "") String search,
-            @RequestParam(required = false, defaultValue = "10") int pageSize,
-            @RequestParam(required = false, defaultValue = "1") int pageNumber,
+            @RequestParam(value = "search", required = false, defaultValue = "") String search,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "10") int pageSize,
+            @RequestParam(value = "pageNumber", required = false, defaultValue = "1") int pageNumber,
             Model model
     ) {
-        List<Post> posts = postService.getAllByParams(search, pageSize, pageNumber);
-        // Для определения есть ли следующая и предыдущая страницы, можно проверить общее число постов или отдать это вместе с постами
+        List<PostResponseDto> posts = postService.getAllByParams(search, pageSize, pageNumber);
+        System.out.println("НАЙДЕННЫЕ ПОСТЫ: " + posts.size());
+        for (PostResponseDto post : posts) {
+            System.out.println(post);
+        }
         boolean hasNext = postService.hasNextPage(search, pageSize, pageNumber);
         boolean hasPrevious = pageNumber > 1;
 
-        // Добавляем данные в модель для шаблона
+        System.out.println("hasNextPage: " + hasNext);
+        System.out.println("hasPrevious: " + hasPrevious);
+
         model.addAttribute("posts", posts);
         model.addAttribute("search", search);
 
-        Map<String, Object> paging = new HashMap<>();
-        paging.put("pageNumber", pageNumber);
-        paging.put("pageSize", pageSize);
-        paging.put("hasNext", hasNext);
-        paging.put("hasPrevious", hasPrevious);
-
+        Paging paging = new Paging(pageNumber, pageSize, hasNext, hasPrevious);
         model.addAttribute("paging", paging);
+
+        System.out.println("В МОДЕЛИ ЧТО: " + model.getAttribute("posts"));
 
         return "posts";
     }
-     */
 
     @GetMapping("/posts/{id}")
     public String get(@PathVariable("id") Long id, Model model) {

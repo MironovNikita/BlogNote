@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,11 +46,17 @@ public class PostMapper {
 
     public PostResponseDto toPostRsDto(Post post) {
         PostResponseDto postRsDto = new PostResponseDto();
+        postRsDto.setId(post.getId());
         postRsDto.setTitle(post.getTitle());
         postRsDto.setText(post.getText());
         postRsDto.setImageBase64(Base64.getEncoder().encodeToString(post.getImageData()));
         postRsDto.setLikesCount(post.getLikesCount());
-        postRsDto.setComments(post.getComments());
+        postRsDto.setTags(post.getTags() == null
+                ? Collections.emptyList()
+                : post.getTags().stream().map(Tag::getName).toList());
+        postRsDto.setComments(post.getComments() == null
+                ? Collections.emptyList()
+                : post.getComments());
         return postRsDto;
     }
 

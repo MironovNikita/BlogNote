@@ -1,20 +1,21 @@
 package org.blog.app.repository.post;
 
 import lombok.RequiredArgsConstructor;
+import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.post.Post;
+import org.blog.app.entity.tag.Tag;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-//TODO Вынести @Transactional в слой сервиса!!!
 @Repository
 @RequiredArgsConstructor
 public class PostRepositoryImpl implements PostRepository {
@@ -37,10 +38,9 @@ public class PostRepositoryImpl implements PostRepository {
                 }, keyHolder
         );
 
-        return Objects.requireNonNull(keyHolder.getKey()).longValue();
+        return (Long) Objects.requireNonNull(keyHolder.getKeys()).get("id");
     }
 
-    //TODO В методе сервиса будет проверка на существование этого самого Post, поэтому метод будет принимать два поста. Одна сущность - это пост с новыми данными, а вторая со старыми
     @Override
     public void update(Post postToUpdate, Post existingPost) {
         if (postToUpdate.getTitle() != null && !postToUpdate.getTitle().isBlank())
@@ -63,8 +63,6 @@ public class PostRepositoryImpl implements PostRepository {
         }
     }
 
-    //TODO Дописать комментарии в поиск и теги (в сервисе) + может выбрасывать исключение EmptyResultDataAccessException e
-    // 3 отдельных репо: комменты, посты и теги
     @Override
     public Optional<Post> getById(Long id) {
         return Optional.of(jdbcTemplate.queryForObject(
@@ -79,12 +77,6 @@ public class PostRepositoryImpl implements PostRepository {
                 }, id));
     }
 
-    //TODO При get-методах добавить Optional для безопасности!
-
-    //public List<Post> getAllByParams(String search, int pageSize, int pageNumber) {
-        //jdbcTemplate.queryForList()
-    //}
-
     public Post getLikes(Long id) {
         return jdbcTemplate.queryForObject(
                 "SELECT id, likesCount FROM POSTS WHERE id = ?", (rs, rowNum) -> {
@@ -95,8 +87,6 @@ public class PostRepositoryImpl implements PostRepository {
                 }, id);
     }
 
-    //TODO getall пока под вопросом (пропустил)
-
 
     @Override
     public void delete(Long id) {
@@ -106,6 +96,129 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public void updateRating(Post post) {
         jdbcTemplate.update("UPDATE posts SET likescount = ? WHERE id = ?", post.getLikesCount(), post.getId());
+    }
+
+    @Override
+    public List<Post> getAllByParams(String search, int limit, int offset) {
+        List<Post> posts = jdbcTemplate.query(
+                "SELECT DISTINCT p.id, p.title, p.text, p.imageData, p.likesCount " +
+                        "FROM posts p " +
+                        (search.isEmpty() ? "" :
+                                "JOIN posts_tags pt ON p.id = pt.post_id " +
+                                        "JOIN tags t ON pt.tag_id = t.id " +
+                                        "WHERE t.name LIKE ? ") +
+                        "ORDER BY p.id DESC LIMIT ? OFFSET ?",
+                ps -> {
+                    int index = 1;
+                    if (!search.isEmpty()) {
+                        ps.setString(index++, "%" + search + "%");
+                    }
+                    ps.setInt(index++, limit);
+                    ps.setInt(index, offset);
+                }, (rs, rowNum) -> {
+                    Post post = new Post();
+                    post.setId(rs.getLong("id"));
+                    post.setTitle(rs.getString("title"));
+                    post.setText(rs.getString("text"));
+                    post.setImageData(rs.getBytes("imageData"));
+                    post.setLikesCount(rs.getLong("likesCount"));
+                    post.setTags(new HashSet<>());
+                    post.setComments(new ArrayList<>());
+                    return post;
+                });
+
+        Map<Long, Post> postMap = posts.stream()
+                .collect(Collectors.toMap(Post::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
+        if (!postMap.isEmpty()) {
+            putTags(postMap);
+            putComments(postMap);
+        }
+
+        return new ArrayList<>(postMap.values());
+    }
+
+    @Override
+    public boolean hasNextPage(String search, int limit, int offset) {
+        String countQuery =
+                "SELECT COUNT(DISTINCT p.id) " +
+                        "FROM posts p " +
+                        (search.isEmpty() ? "" :
+                                "JOIN posts_tags pt ON p.id = pt.post_id " +
+                                        "JOIN tags t ON pt.tag_id = t.id " +
+                                        "WHERE t.name ILIKE ?");
+
+        Integer total = jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(countQuery);
+            if (!search.isEmpty()) {
+                ps.setString(1, "%" + search + "%");
+            }
+            return ps;
+        }, rs -> rs.next() ? rs.getInt(1) : 0);
+
+        return (offset + limit) < total;
+    }
+
+    private void putTags(Map<Long, Post> postMap) {
+        if (postMap.isEmpty()) return;
+
+        String inClause = postMap.keySet().stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String sql = "SELECT pt.post_id, t.id, t.name " +
+                "FROM posts_tags pt " +
+                "JOIN tags t ON pt.tag_id = t.id " +
+                "WHERE pt.post_id IN (" + inClause + ")";
+
+        jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(sql);
+            int index = 1;
+            for (Long id : postMap.keySet()) {
+                ps.setLong(index++, id);
+            }
+            return ps;
+        }, (ResultSet rs) -> {
+            while (rs.next()) {
+                Long postId = rs.getLong("post_id");
+                Post post = postMap.get(postId);
+                if (post != null) {
+                    Tag tag = new Tag(rs.getLong("id"), rs.getString("name"));
+                    post.getTags().add(tag);
+                }
+            }
+        });
+    }
+
+    private void putComments(Map<Long, Post> postMap) {
+        if (postMap.isEmpty()) return;
+
+        String inClause = postMap.keySet().stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String sql = "SELECT pc.post_id, c.id, c.text " +
+                "FROM posts_comments pc " +
+                "JOIN comments c ON pc.comment_id = c.id " +
+                "WHERE pc.post_id IN (" + inClause + ")";
+
+        jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(sql);
+            int index = 1;
+            for (Long id : postMap.keySet()) {
+                ps.setLong(index++, id);
+            }
+            return ps;
+        }, (ResultSet rs) -> {
+            while (rs.next()) {
+                Long postId = rs.getLong("post_id");
+                Post post = postMap.get(postId);
+                if (post != null) {
+                    Comment comment = new Comment(rs.getLong("id"), rs.getString("text"));
+                    post.getComments().add(comment);
+                }
+            }
+        });
     }
 }
 

@@ -31,7 +31,8 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public Long create(PostRequestDto postRqDto) {
-
+        System.out.println("ЗАШЁЛ В МЕТОД СЕРВИСА!!!");
+        System.out.println("Сущность postRqDto = " + postRqDto);
         Post post = postMapper.toPost(postRqDto);
         post.setLikesCount(0L);
         Long postId = postRepository.create(post);
@@ -65,7 +66,16 @@ public class PostServiceImpl implements PostService {
     }
 
     public List<PostResponseDto> getAllByParams(String search, int pageSize, int pageNumber) {
-        return null;
+        int offset = (pageNumber - 1) * pageSize;
+        return postRepository.getAllByParams(search, pageSize, offset)
+                .stream()
+                .map(postMapper::toPostRsDto)
+                .toList();
+    }
+
+    public boolean hasNextPage(String search, int pageSize, int pageNumber) {
+        int offset = pageNumber * pageSize;
+        return postRepository.hasNextPage(search, pageSize, offset);
     }
 
     @Override

@@ -2,6 +2,7 @@ package org.blog.app.repository.post;
 
 import org.blog.app.entity.post.Post;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PostRepository {
@@ -15,4 +16,8 @@ public interface PostRepository {
     void delete(Long id);
 
     void updateRating(Post post);
+
+    List<Post> getAllByParams(String search, int pageSize, int pageNumber);
+
+    boolean hasNextPage(String search, int limit, int offset);
 }

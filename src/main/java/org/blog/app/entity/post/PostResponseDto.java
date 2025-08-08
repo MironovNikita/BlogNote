@@ -1,13 +1,11 @@
 package org.blog.app.entity.post;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.blog.app.entity.comment.Comment;
 
 import java.util.List;
 
+@ToString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -24,7 +22,18 @@ public class PostResponseDto {
 
     private Long likesCount;
 
-    private String tags;
+    private List<String> tags;
 
     private List<Comment> comments;
+
+    public String getTextPreview() {
+        if (text == null) {
+            return "";
+        }
+        int limit = 200;
+        if (text.length() <= limit) {
+            return text;
+        }
+        return text.substring(0, limit) + "...";
+    }
 }

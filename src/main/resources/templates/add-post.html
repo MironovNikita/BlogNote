@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
-
 <head>
     <meta charset="UTF-8"/>
     <title>BlogNote</title>
@@ -19,114 +18,122 @@
 </head>
 
 <body>
-<a href="/posts" style="float:right;">
+<a th:href="@{/posts}" style="float:right;">
     <b>НА ГЛАВНУЮ &cudarrr;</b>
 </a>
-<form id="postForm" method="POST" th:action="${post == null ? '/posts' : '/posts/' + post.getId() + '/edit'}"
-      enctype="multipart/form-data" novalidate>
-    <table style="width:50%;margin-left:auto;margin-right:auto;">
-        <tr>
-            <td>
-                <h3>Название</h3>
-                <textarea rows="2" style="width: 100%;" name="title"
-                          th:text="${post==null ? '' : post.getTitle()}"
-                          required minlength="10" maxlength="150"
-                          aria-describedby="titleError"></textarea>
-                <div id="titleError" class="error-message"></div>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h3>Изображение</h3>
-                <input type="file" name="image">
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h3>Теги</h3>
-                <textarea rows="2" style="width: 100%;" name="tags" th:text="${post==null ? '' : post.getTagsAsText()}"></textarea>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <h3>Текст</h3>
-                <textarea rows="30" style="width: 100%;" name="text"
-                          th:text="${post==null ? '' : post.getText()}"
-                          required minlength="10" maxlength="5000"
-                          aria-describedby="textError"></textarea>
-                <div id="textError" class="error-message"></div>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <button style="float:right; padding: 15px 50px; font-size: 15px" th:text="${post==null ? 'Сохранить' : 'Редактировать'}" type="submit"></button>
-            </td>
-        </tr>
-    </table>
-</form>
+
+<th:block th:with="formAction=${post == null} ? '/posts' : '/posts/' + post.id + '/edit'">
+    <form id="postForm" th:action="@{${formAction}}" method="post" enctype="multipart/form-data" novalidate>
+
+        <table style="width:50%;margin-left:auto;margin-right:auto;">
+            <tr>
+                <td>
+                    <h3>Название</h3>
+                    <textarea rows="2" style="width: 100%;" name="title"
+                              th:text="${post?.title}"
+                              required minlength="10" maxlength="150"
+                              aria-describedby="titleError"></textarea>
+                    <div id="titleError" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Изображение</h3>
+                    <input type="file" name="image"/>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Теги</h3>
+                    <textarea rows="2" style="width: 100%;" name="tags"
+                              th:text="${post?.tagsAsText}"></textarea>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <h3>Текст</h3>
+                    <textarea rows="30" style="width: 100%;" name="text"
+                              th:text="${post?.text}"
+                              required minlength="10" maxlength="5000"
+                              aria-describedby="textError"></textarea>
+                    <div id="textError" class="error-message"></div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button style="float:right; padding: 15px 50px; font-size: 15px"
+                            type="submit"
+                            th:text="${post == null} ? 'Сохранить' : 'Редактировать'">
+                        Сохранить
+                    </button>
+                </td>
+            </tr>
+        </table>
+
+    </form>
+</th:block>
 
 <script>
     const form = document.getElementById('postForm');
 
-    const titleInput = form.elements['title'];
-    const titleError = document.getElementById('titleError');
+    if (form) {
+        const titleInput = form.elements['title'];
+        const titleError = document.getElementById('titleError');
 
-    const textInput = form.elements['text'];
-    const textError = document.getElementById('textError');
+        const textInput = form.elements['text'];
+        const textError = document.getElementById('textError');
 
-    function validateField(input, errorElem, minLen, maxLen, fieldName) {
-        const val = input.value.trim();
+        function validateField(input, errorElem, minLen, maxLen, fieldName) {
+            const val = input.value.trim();
 
-        if (!val) {
-            errorElem.textContent = `${fieldName} не может быть пустым`;
-            errorElem.style.display = 'block';
-            input.setCustomValidity(fieldName + " не может быть пустым");
-            return false;
+            if (!val) {
+                errorElem.textContent = `${fieldName} не может быть пустым`;
+                errorElem.style.display = 'block';
+                input.setCustomValidity(fieldName + " не может быть пустым");
+                return false;
+            }
+            if (val.length < minLen) {
+                errorElem.textContent = `Минимальный размер ${fieldName.toLowerCase()} ${minLen} символов`;
+                errorElem.style.display = 'block';
+                input.setCustomValidity(`Минимальный размер ${fieldName.toLowerCase()} ${minLen} символов`);
+                return false;
+            }
+            if (val.length > maxLen) {
+                errorElem.textContent = `Максимальный размер ${fieldName.toLowerCase()} ${maxLen} символов`;
+                errorElem.style.display = 'block';
+                input.setCustomValidity(`Максимальный размер ${fieldName.toLowerCase()} ${maxLen} символов`);
+                return false;
+            }
+
+            errorElem.textContent = '';
+            errorElem.style.display = 'none';
+            input.setCustomValidity('');
+            return true;
         }
-        if (val.length < minLen) {
-            errorElem.textContent = `Минимальный размер ${fieldName.toLowerCase()} ${minLen} символов`;
-            errorElem.style.display = 'block';
-            input.setCustomValidity(`Минимальный размер ${fieldName.toLowerCase()} ${minLen} символов`);
-            return false;
-        }
-        if (val.length > maxLen) {
-            errorElem.textContent = `Максимальный размер ${fieldName.toLowerCase()} ${maxLen} символов`;
-            errorElem.style.display = 'block';
-            input.setCustomValidity(`Максимальный размер ${fieldName.toLowerCase()} ${maxLen} символов`);
-            return false;
-        }
 
-        // нет ошибок
-        errorElem.textContent = '';
-        errorElem.style.display = 'none';
-        input.setCustomValidity('');
-        return true;
+        titleInput.addEventListener('input', () => {
+            validateField(titleInput, titleError, 10, 150, 'Заголовок');
+        });
+
+        textInput.addEventListener('input', () => {
+            validateField(textInput, textError, 10, 5000, 'Текст');
+        });
+
+        form.addEventListener('submit', (e) => {
+            const isTitleValid = validateField(titleInput, titleError, 10, 150, 'Заголовок');
+            const isTextValid = validateField(textInput, textError, 10, 5000, 'Текст');
+
+            if (!isTitleValid) {
+                titleInput.focus();
+                e.preventDefault();
+                return;
+            }
+            if (!isTextValid) {
+                textInput.focus();
+                e.preventDefault();
+            }
+        });
     }
-
-    // Валидация в реальном времени
-    titleInput.addEventListener('input', () => {
-        validateField(titleInput, titleError, 10, 150, 'Заголовок');
-    });
-
-    textInput.addEventListener('input', () => {
-        validateField(textInput, textError, 10, 5000, 'Текст');
-    });
-
-    // Валидация при отправке формы
-    form.addEventListener('submit', (e) => {
-        const isTitleValid = validateField(titleInput, titleError, 10, 150, 'Заголовок');
-        const isTextValid = validateField(textInput, textError, 10, 5000, 'Текст');
-
-        if (!isTitleValid) {
-            titleInput.focus();
-            e.preventDefault();
-            return;
-        }
-        if (!isTextValid) {
-            textInput.focus();
-            e.preventDefault();
-        }
-    });
 </script>
 </body>
 </html>
