@@ -31,8 +31,6 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional
     public Long create(PostRequestDto postRqDto) {
-        System.out.println("ЗАШЁЛ В МЕТОД СЕРВИСА!!!");
-        System.out.println("Сущность postRqDto = " + postRqDto);
         Post post = postMapper.toPost(postRqDto);
         post.setLikesCount(0L);
         Long postId = postRepository.create(post);

@@ -31,7 +31,7 @@
                     </p>
                     <p>
                         <button th:if="${paging.hasPrevious}" name="pageNumber" th:value="${paging.pageNumber - 1}">&lt;</button>
-                        <span th:text="${'Страница: '+paging.pageNumber()}"></span>
+                        <span th:text="${'Страница: ' + paging.pageNumber}"></span>
                         <button th:if="${paging.hasNext}" name="pageNumber" th:value="${paging.pageNumber + 1}">&gt;</button>
                     </p>
                 </form>
@@ -42,10 +42,10 @@
                 <h2 th:text="${post.title}"></h2>
                 <p>
                     <a th:href="@{/posts/{id}(id=${post.id})}">
-                        <img height="300" th:src="@{/images/{id}(id=${post.id})}" alt="postImage">
+                        <img height="300" th:src="@{/images/{id}(id=${post.getId()})}" alt="postImage">
                     </a>
                 </p>
-                <p th:text="${post.textPreview}"></p>
+                <p th:text="${post.getTextPreview()}"></p>
                 <p>
                     <span th:text="${'&#x1F44D; '+post.likesCount}"></span>
                     <span th:text="${'&#x2709; '+post.comments.size()}"></span>

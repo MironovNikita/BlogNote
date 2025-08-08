@@ -3,6 +3,8 @@ package org.blog.app.entity.post;
 import lombok.*;
 import org.blog.app.entity.comment.Comment;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @ToString
@@ -35,5 +37,10 @@ public class PostResponseDto {
             return text;
         }
         return text.substring(0, limit) + "...";
+    }
+
+    public List<String> getTextParts() {
+        if (text == null || text.isBlank()) return Collections.emptyList();
+        return Arrays.asList(text.split("\\n"));
     }
 }

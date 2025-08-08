@@ -41,15 +41,9 @@ public class PostController {
             Model model
     ) {
         List<PostResponseDto> posts = postService.getAllByParams(search, pageSize, pageNumber);
-        System.out.println("НАЙДЕННЫЕ ПОСТЫ: " + posts.size());
-        for (PostResponseDto post : posts) {
-            System.out.println(post);
-        }
+
         boolean hasNext = postService.hasNextPage(search, pageSize, pageNumber);
         boolean hasPrevious = pageNumber > 1;
-
-        System.out.println("hasNextPage: " + hasNext);
-        System.out.println("hasPrevious: " + hasPrevious);
 
         model.addAttribute("posts", posts);
         model.addAttribute("search", search);
@@ -57,7 +51,7 @@ public class PostController {
         Paging paging = new Paging(pageNumber, pageSize, hasNext, hasPrevious);
         model.addAttribute("paging", paging);
 
-        System.out.println("В МОДЕЛИ ЧТО: " + model.getAttribute("posts"));
+        System.out.println("PAGING " + paging);
 
         return "posts";
     }
