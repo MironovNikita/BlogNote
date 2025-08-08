@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@ToString
 @Getter
 @Setter
 @AllArgsConstructor
@@ -32,6 +31,7 @@ public class PostResponseDto {
         if (text == null) {
             return "";
         }
+        //TODO Вынести в константу
         int limit = 200;
         if (text.length() <= limit) {
             return text;
@@ -42,5 +42,16 @@ public class PostResponseDto {
     public List<String> getTextParts() {
         if (text == null || text.isBlank()) return Collections.emptyList();
         return Arrays.asList(text.split("\\n"));
+    }
+
+    @Override
+    public String toString() {
+        return "PostResponseDto{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", tags=" + tags +
+                ", comments=" + comments +
+                ", likesCount=" + likesCount +
+                '}';
     }
 }

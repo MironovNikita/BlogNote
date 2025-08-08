@@ -29,4 +29,15 @@ public class Post {
     private Set<Tag> tags;
 
     private List<Comment> comments;
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", tags=" + tags +
+                ", comments=" + comments +
+                ", likesCount=" + likesCount +
+                '}';
+    }
 }

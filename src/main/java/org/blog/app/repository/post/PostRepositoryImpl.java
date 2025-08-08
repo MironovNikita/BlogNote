@@ -5,12 +5,14 @@ import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.post.Post;
 import org.blog.app.entity.tag.Tag;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.function.Function;
@@ -101,7 +103,7 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public List<Post> getAllByParams(String search, int limit, int offset) {
         List<Post> posts = jdbcTemplate.query(
-                "SELECT DISTINCT p.id, p.title, p.text, p.imageData, p.likesCount " +
+                "SELECT p.id, p.title, p.text, p.imageData, p.likesCount " +
                         "FROM posts p " +
                         (search.isEmpty() ? "" :
                                 "JOIN posts_tags pt ON p.id = pt.post_id " +
@@ -169,7 +171,8 @@ public class PostRepositoryImpl implements PostRepository {
         String sql = "SELECT pt.post_id, t.id, t.name " +
                 "FROM posts_tags pt " +
                 "JOIN tags t ON pt.tag_id = t.id " +
-                "WHERE pt.post_id IN (" + inClause + ")";
+                "WHERE pt.post_id IN (" + inClause + ")" +
+                "ORDER BY t.id ";
 
         jdbcTemplate.query(con -> {
             PreparedStatement ps = con.prepareStatement(sql);
@@ -178,14 +181,12 @@ public class PostRepositoryImpl implements PostRepository {
                 ps.setLong(index++, id);
             }
             return ps;
-        }, (ResultSet rs) -> {
-            while (rs.next()) {
-                Long postId = rs.getLong("post_id");
-                Post post = postMap.get(postId);
-                if (post != null) {
-                    Tag tag = new Tag(rs.getLong("id"), rs.getString("name"));
-                    post.getTags().add(tag);
-                }
+        }, rs -> {
+            Long postId = rs.getLong("post_id");
+            Post post = postMap.get(postId);
+            if (post != null) {
+                Tag tag = new Tag(rs.getLong("id"), rs.getString("name"));
+                post.getTags().add(tag);
             }
         });
     }
@@ -200,7 +201,8 @@ public class PostRepositoryImpl implements PostRepository {
         String sql = "SELECT pc.post_id, c.id, c.text " +
                 "FROM posts_comments pc " +
                 "JOIN comments c ON pc.comment_id = c.id " +
-                "WHERE pc.post_id IN (" + inClause + ")";
+                "WHERE pc.post_id IN (" + inClause + ")" +
+                "ORDER BY c.id";
 
         jdbcTemplate.query(con -> {
             PreparedStatement ps = con.prepareStatement(sql);
@@ -209,14 +211,12 @@ public class PostRepositoryImpl implements PostRepository {
                 ps.setLong(index++, id);
             }
             return ps;
-        }, (ResultSet rs) -> {
-            while (rs.next()) {
-                Long postId = rs.getLong("post_id");
-                Post post = postMap.get(postId);
-                if (post != null) {
-                    Comment comment = new Comment(rs.getLong("id"), rs.getString("text"));
-                    post.getComments().add(comment);
-                }
+        }, rs -> {
+            Long postId = rs.getLong("post_id");
+            Post post = postMap.get(postId);
+            if (post != null) {
+                Comment comment = new Comment(rs.getLong("id"), rs.getString("text"));
+                post.getComments().add(comment);
             }
         });
     }

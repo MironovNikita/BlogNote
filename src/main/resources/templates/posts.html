@@ -39,7 +39,9 @@
         </tr>
         <tr th:each="post : ${posts}">
             <td style="border-bottom:thin solid;">
-                <h2 th:text="${post.title}"></h2>
+                <h2>
+                    <a th:href="@{/posts/{id}(id=${post.id})}" th:text="${post.title}" style="text-decoration: none; color: inherit;"></a>
+                </h2>
                 <p>
                     <a th:href="@{/posts/{id}(id=${post.id})}">
                         <img height="300" th:src="@{/images/{id}(id=${post.getId()})}" alt="postImage">
@@ -48,12 +50,12 @@
                 <p th:text="${post.getTextPreview()}"></p>
                 <p>
                     <span th:text="${'&#x1F44D; '+post.likesCount}"></span>
-                    <span th:text="${'&#x2709; '+post.comments.size()}"></span>
+                    <span th:text="${'&#x2709; '+post.getComments().size()}"></span>
                 </p>
                 <p th:if="${post.tags != null and !#lists.isEmpty(post.tags)}">
-                    <span th:each="tag : ${post.tags}" th:text="'#' + tag + ' '"></span>
+                    <span th:each="tag : ${post.tags}" th:text="'#' + ${tag} + ' '"></span>
                 </p>
-                <p th:if="${post.tags == null}">
+                <p th:if="${post.tags == null || #lists.isEmpty(post.tags)}">
                     <i>Теги отсутствуют</i>
                 </p>
             </td>

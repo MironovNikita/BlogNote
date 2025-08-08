@@ -51,8 +51,6 @@ public class PostController {
         Paging paging = new Paging(pageNumber, pageSize, hasNext, hasPrevious);
         model.addAttribute("paging", paging);
 
-        System.out.println("PAGING " + paging);
-
         return "posts";
     }
 
