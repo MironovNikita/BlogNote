@@ -7,8 +7,8 @@ import lombok.Setter;
 import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.tag.Tag;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 @Getter
 @Setter
@@ -26,7 +26,7 @@ public class Post {
 
     private Long likesCount;
 
-    private Set<Tag> tags;
+    private List<Tag> tags;
 
     private List<Comment> comments;
 
@@ -35,9 +35,10 @@ public class Post {
         return "Post{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
+                ", text='" + text + '\'' +
+                ", likesCount=" + likesCount +
                 ", tags=" + tags +
                 ", comments=" + comments +
-                ", likesCount=" + likesCount +
                 '}';
     }
 }

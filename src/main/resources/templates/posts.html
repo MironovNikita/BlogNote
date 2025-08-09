@@ -44,7 +44,7 @@
                 </h2>
                 <p>
                     <a th:href="@{/posts/{id}(id=${post.id})}">
-                        <img height="300" th:src="@{/images/{id}(id=${post.getId()})}" alt="postImage">
+                        <img height="300" th:src="@{/images/{id}(id=${post.getId()})}" alt="Изображение отсутствует">
                     </a>
                 </p>
                 <p th:text="${post.getTextPreview()}"></p>

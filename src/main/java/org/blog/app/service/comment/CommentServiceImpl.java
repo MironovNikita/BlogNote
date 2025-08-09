@@ -34,7 +34,6 @@ public class CommentServiceImpl implements CommentService {
     public void update(Long postId, Long commentId, CommentRequestDto updateCommentDto) {
 
         Post post = postService.getById(postId);
-        System.out.println("Post в сервисе: " + post);
         Comment commentToUpdate = post.getComments().stream()
                 .filter(com -> com.getId().equals(commentId))
                 .findFirst()

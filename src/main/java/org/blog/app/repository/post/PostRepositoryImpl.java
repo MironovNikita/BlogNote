@@ -5,14 +5,11 @@ import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.post.Post;
 import org.blog.app.entity.tag.Tag;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.function.Function;
@@ -49,8 +46,10 @@ public class PostRepositoryImpl implements PostRepository {
             existingPost.setTitle(postToUpdate.getTitle());
         if (postToUpdate.getText() != null && !postToUpdate.getText().isBlank())
             existingPost.setText(postToUpdate.getText());
-        if (postToUpdate.getImageData() != null) existingPost.setImageData(postToUpdate.getImageData());
-        if (postToUpdate.getTags() != null) existingPost.setTags(postToUpdate.getTags());
+        if (postToUpdate.getImageData() != null && postToUpdate.getImageData().length > 0)
+            existingPost.setImageData(postToUpdate.getImageData());
+        if (postToUpdate.getTags() != null && !postToUpdate.getTags().isEmpty())
+            existingPost.setTags(postToUpdate.getTags());
 
         jdbcTemplate.update(
                 "UPDATE posts SET title = ?, text = ?, imageData = ? WHERE id = ?",
@@ -60,7 +59,7 @@ public class PostRepositoryImpl implements PostRepository {
                 existingPost.getId()
         );
 
-        if (postToUpdate.getTags() != null) {
+        if (postToUpdate.getTags() != null && !postToUpdate.getTags().isEmpty()) {
             jdbcTemplate.update("DELETE FROM posts_tags WHERE post_id = ?", existingPost.getId());
         }
     }
@@ -78,17 +77,6 @@ public class PostRepositoryImpl implements PostRepository {
                     return post;
                 }, id));
     }
-
-    public Post getLikes(Long id) {
-        return jdbcTemplate.queryForObject(
-                "SELECT id, likesCount FROM POSTS WHERE id = ?", (rs, rowNum) -> {
-                    Post post = new Post();
-                    post.setId(rs.getLong("id"));
-                    post.setLikesCount(rs.getLong("likesCount"));
-                    return post;
-                }, id);
-    }
-
 
     @Override
     public void delete(Long id) {
@@ -124,7 +112,7 @@ public class PostRepositoryImpl implements PostRepository {
                     post.setText(rs.getString("text"));
                     post.setImageData(rs.getBytes("imageData"));
                     post.setLikesCount(rs.getLong("likesCount"));
-                    post.setTags(new HashSet<>());
+                    post.setTags(new ArrayList<>());
                     post.setComments(new ArrayList<>());
                     return post;
                 });
@@ -142,23 +130,28 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public boolean hasNextPage(String search, int limit, int offset) {
-        String countQuery =
-                "SELECT COUNT(DISTINCT p.id) " +
-                        "FROM posts p " +
-                        (search.isEmpty() ? "" :
-                                "JOIN posts_tags pt ON p.id = pt.post_id " +
-                                        "JOIN tags t ON pt.tag_id = t.id " +
-                                        "WHERE t.name ILIKE ?");
+        String query =
+                "SELECT p.id " +
+                "FROM posts p " +
+                (search.isEmpty() ? "" :
+                        "JOIN posts_tags pt ON p.id = pt.post_id " +
+                                "JOIN tags t ON pt.tag_id = t.id " +
+                                "WHERE t.name LIKE ? ") +
+                        "ORDER BY p.id DESC " +
+                        "LIMIT ? OFFSET ?";
 
-        Integer total = jdbcTemplate.query(con -> {
-            PreparedStatement ps = con.prepareStatement(countQuery);
+        List<Long> ids = jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(query);
+            int index = 1;
             if (!search.isEmpty()) {
-                ps.setString(1, "%" + search + "%");
+                ps.setString(index++, "%" + search + "%");
             }
+            ps.setInt(index++, limit + 1);
+            ps.setInt(index, offset);
             return ps;
-        }, rs -> rs.next() ? rs.getInt(1) : 0);
+        }, (rs, rowNum) -> rs.getLong("id"));
 
-        return (offset + limit) < total;
+        return !ids.isEmpty();
     }
 
     private void putTags(Map<Long, Post> postMap) {

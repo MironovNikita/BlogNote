@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.blog.app.common.mapper.PostMapper;
 import org.blog.app.entity.paging.Paging;
+import org.blog.app.entity.post.Post;
 import org.blog.app.entity.post.PostRequestDto;
 import org.blog.app.entity.post.PostResponseDto;
 import org.blog.app.service.image.ImageService;
@@ -93,26 +94,25 @@ public class PostController {
         return "redirect:/posts/" + postId;
     }
 
-    @PostMapping("/{id}/edit")
-    public String postEdit(@PathVariable Long id) {
-        // Просто переводим на изменение поста
-        return "redirect:/posts/" + id + "/edit";
-    }
-
-    @GetMapping("/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
-        PostResponseDto post = postMapper.toPostRsDto(postService.getById(id));
-
-        model.addAttribute("post", post);
-        return "post-add";
-    }
-
-    @PostMapping(value = "/posts/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String update(@PathVariable("id") Long id, @ModelAttribute @Valid PostRequestDto postRqDto) {
+    @PostMapping(value = "posts/{id}/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String postEdit(@PathVariable("id") Long id, @ModelAttribute @Valid PostRequestDto postRqDto) {
         postService.update(id, postRqDto);
-
         return "redirect:/posts/" + id;
     }
+
+    @GetMapping("posts/{id}/edit")
+    public String showEditForm(@PathVariable("id") Long id, Model model) {
+        PostResponseDto post = postMapper.toPostRsDto(postService.getById(id));
+        model.addAttribute("post", post);
+
+        return "add-post";
+    }
+
+    //@PostMapping(value = "/posts/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //public String update(@PathVariable("id") Long id, @ModelAttribute @Valid PostRequestDto postRqDto) {
+    //    postService.update(id, postRqDto);
+    //    return "redirect:/posts/" + id;
+    //}
 
     @PostMapping("/posts/{id}/delete")
     public String delete(@PathVariable("id") Long id) {

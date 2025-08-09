@@ -11,8 +11,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Component
 public class PostMapper {
@@ -36,12 +35,12 @@ public class PostMapper {
         return post;
     }
 
-    private Set<Tag> handlePostTags(String tags) {
+    private List<Tag> handlePostTags(String tags) {
         return Arrays.stream(tags.split(TAG_PATTERN))
                 .filter(s -> !s.isEmpty())
                 .map(String::toLowerCase)
                 .map(Tag::new)
-                .collect(Collectors.toSet());
+                .toList();
     }
 
     public PostResponseDto toPostRsDto(Post post) {

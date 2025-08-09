@@ -15,7 +15,7 @@ public class TagRepositoryImpl implements TagRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    public void saveTags(Set<Tag> tags, Long postId) {
+    public void saveTags(List<Tag> tags, Long postId) {
 
         if (tags == null || tags.isEmpty()) return;
         List<Tag> tagList = new ArrayList<>(tags);
@@ -51,17 +51,17 @@ public class TagRepositoryImpl implements TagRepository {
     }
 
     @Override
-    public void updateTags(Set<Tag> tags, Long postId) {
+    public void updateTags(List<Tag> tags, Long postId) {
         jdbcTemplate.update("DELETE FROM posts_tags WHERE post_id = ?", postId);
         saveTags(tags, postId);
     }
 
     @Override
-    public Set<Tag> getTagsByPostId(Long postId) {
-        return new HashSet<>(jdbcTemplate.query(
-                "SELECT t.id, t.name FROM tags t JOIN posts_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ?",
+    public List<Tag> getTagsByPostId(Long postId) {
+        return jdbcTemplate.query(
+                "SELECT t.id, t.name FROM tags t JOIN posts_tags pt ON t.id = pt.tag_id WHERE pt.post_id = ? ORDER BY t.id ",
                 (rs, rowNum) -> new Tag(rs.getLong("id"), rs.getString("name")),
                 postId
-        ));
+        );
     }
 }

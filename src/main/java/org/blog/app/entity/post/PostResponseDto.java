@@ -44,6 +44,17 @@ public class PostResponseDto {
         return Arrays.asList(text.split("\\n"));
     }
 
+    public String getTagsAsText() {
+        if (tags == null || tags.isEmpty()) return "";
+
+        StringBuilder sb = new StringBuilder();
+        for (String tag : tags) {
+            sb.append(tag);
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
+
     @Override
     public String toString() {
         return "PostResponseDto{" +
