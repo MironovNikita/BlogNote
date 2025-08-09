@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.blog.app.common.exception.ObjectNotFoundException;
 import org.blog.app.common.mapper.CommentMapper;
 import org.blog.app.entity.comment.Comment;
-import org.blog.app.entity.comment.CommentDto;
+import org.blog.app.entity.comment.CommentRequestDto;
 import org.blog.app.entity.post.Post;
 import org.blog.app.repository.comment.CommentRepository;
 import org.blog.app.service.post.PostService;
@@ -24,22 +24,23 @@ public class CommentServiceImpl implements CommentService {
     private final PostService postService;
 
     @Override
-    public void create(Long postId, CommentDto commentDto) {
+    public void create(Long postId, CommentRequestDto commentDto) {
 
         postService.getById(postId);
         commentRepository.create(commentMapper.toComment(commentDto), postId);
     }
 
     @Override
-    public void update(Long postId, Long commentId, CommentDto commentDto) {
+    public void update(Long postId, Long commentId, CommentRequestDto updateCommentDto) {
 
         Post post = postService.getById(postId);
+        System.out.println("Post в сервисе: " + post);
         Comment commentToUpdate = post.getComments().stream()
                 .filter(com -> com.getId().equals(commentId))
                 .findFirst()
                 .orElseThrow(() -> new ObjectNotFoundException("Комментарий", commentId));
 
-        commentRepository.update(commentToUpdate, commentMapper.toComment(commentDto));
+        commentRepository.update(commentToUpdate, updateCommentDto);
     }
 
     @Override

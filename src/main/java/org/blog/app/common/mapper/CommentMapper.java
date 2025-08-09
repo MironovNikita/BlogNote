@@ -1,13 +1,16 @@
 package org.blog.app.common.mapper;
 
 import org.blog.app.entity.comment.Comment;
-import org.blog.app.entity.comment.CommentDto;
+import org.blog.app.entity.comment.CommentRequestDto;
+import org.blog.app.entity.comment.CommentResponseDto;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface CommentMapper {
 
-    Comment toComment(CommentDto commentDto);
+    @Mapping(target = "id", ignore = true)
+    Comment toComment(CommentRequestDto commentDto);
 
-    CommentDto toCommentDto(Comment comment);
+    CommentResponseDto toCommentRsDto(Comment comment);
 }

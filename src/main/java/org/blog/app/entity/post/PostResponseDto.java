@@ -24,7 +24,7 @@ public class PostResponseDto {
     private Long likesCount;
 
     private List<String> tags;
-
+    //TODO Переделать на CommentResponseDto
     private List<Comment> comments;
 
     public String getTextPreview() {

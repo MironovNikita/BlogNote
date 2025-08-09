@@ -2,6 +2,7 @@ package org.blog.app.repository.comment;
 
 import lombok.RequiredArgsConstructor;
 import org.blog.app.entity.comment.Comment;
+import org.blog.app.entity.comment.CommentRequestDto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -42,8 +43,8 @@ public class CommentRepositoryImpl implements CommentRepository {
     //TODO В методе сервиса будет проверка на существование этого самого Comment, поэтому метод будет принимать два комментария.
     // Одна сущность - это пост с новыми данными, а вторая со старыми. Хотя возможно это не нужно.
     @Override
-    public void update(Comment commentToUpdate, Comment existingComment) {
-        var text = commentToUpdate.getText();
+    public void update(Comment existingComment, CommentRequestDto updateCommentDto) {
+        var text = updateCommentDto.getText();
         if (text != null && !text.isBlank()) existingComment.setText(text);
 
         jdbcTemplate.update("UPDATE comments SET text = ? WHERE id = ?",

@@ -2,7 +2,7 @@ package org.blog.app.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.blog.app.entity.comment.CommentDto;
+import org.blog.app.entity.comment.CommentRequestDto;
 import org.blog.app.service.comment.CommentService;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,20 +18,20 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("posts/{id}/comments")
-    public String create(@PathVariable("id") Long id, @ModelAttribute @Valid CommentDto commentDto) {
+    public String create(@PathVariable("id") Long id, @ModelAttribute @Valid CommentRequestDto commentDto) {
         commentService.create(id, commentDto);
 
         return "redirect:/posts/" + id;
     }
 
     @PostMapping("posts/{id}/comments/{commentId}")
-    public String update(@PathVariable("id") Long id,
+    public String update(@PathVariable("id") Long postId,
                          @PathVariable("commentId") Long commentId,
-                         @ModelAttribute @Valid CommentDto commentDto) {
+                         @ModelAttribute @Valid CommentRequestDto commentDto) {
 
-        commentService.update(id, commentId, commentDto);
+        commentService.update(postId, commentId, commentDto);
 
-        return "redirect:/posts/" + id;
+        return "redirect:/posts/" + postId;
     }
 
     @PostMapping("posts/{id}/comments/{commentId}/delete")
