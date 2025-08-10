@@ -144,6 +144,14 @@ public class PostRepositoryImpl implements PostRepository {
         return !ids.isEmpty();
     }
 
+    @Override
+    public Optional<byte[]> findImageDataByPostId(Long id) {
+        List<byte[]> result = jdbcTemplate.query("SELECT imageData FROM posts WHERE id = ?",
+                (rs, rowNum) -> rs.getBytes("imageData"), id);
+
+        return result.stream().findFirst();
+    }
+
     private void putTags(Map<Long, Post> postMap) {
         if (postMap.isEmpty()) return;
 

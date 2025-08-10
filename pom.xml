@@ -27,6 +27,7 @@
         <postgresql.version>42.7.7</postgresql.version>
         <jakarta.validation.version>3.1.0</jakarta.validation.version>
         <hibernate.validator.version>8.0.2.Final</hibernate.validator.version>
+        <logback.version>1.5.18</logback.version>
     </properties>
 
     <dependencies>
@@ -123,6 +124,12 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
             <version>${mapstruct.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
         </dependency>
     </dependencies>
 

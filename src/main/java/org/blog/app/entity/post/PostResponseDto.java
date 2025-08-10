@@ -65,9 +65,10 @@ public class PostResponseDto {
         return "PostResponseDto{" +
                 "id=" + id +
                 ", title='" + title + '\'' +
+                ", text='" + text + '\'' +
+                ", likesCount=" + likesCount +
                 ", tags=" + tags +
                 ", comments=" + comments +
-                ", likesCount=" + likesCount +
                 '}';
     }
 }

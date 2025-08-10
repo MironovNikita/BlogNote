@@ -25,8 +25,9 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void create(Long postId, CommentRequestDto commentDto) {
 
-        postService.getById(postId);
+        Post post = postService.getById(postId);
         commentRepository.create(commentMapper.toComment(commentDto), postId);
+        log.info("Для поста с ID {} и заголовком {} был создан комментарий длиной {} символов", postId, post.getTitle(), commentDto.getText().length());
     }
 
     @Override
@@ -36,9 +37,14 @@ public class CommentServiceImpl implements CommentService {
         Comment commentToUpdate = post.getComments().stream()
                 .filter(com -> com.getId().equals(commentId))
                 .findFirst()
-                .orElseThrow(() -> new ObjectNotFoundException("Комментарий", commentId));
+                .orElseThrow(() -> {
+                    log.error("Комментарий с ID {} не был найден у поста с ID {} и заголовком {}. Обновление не выполнено!", postId, commentId, post.getTitle());
+                    return new ObjectNotFoundException("Комментарий", commentId);
+                });
 
         commentRepository.update(commentToUpdate, updateCommentDto);
+        log.info("Комментарий с ID {} для поста с ID {} и заголовком был успешно обновлён. Количество символов в новом комментарии: {}",
+                postId, commentId, updateCommentDto.getText().length());
     }
 
     @Override
@@ -47,8 +53,12 @@ public class CommentServiceImpl implements CommentService {
         Comment commentToDelete = post.getComments().stream()
                 .filter(com -> com.getId().equals(commentId))
                 .findFirst()
-                .orElseThrow(() -> new ObjectNotFoundException("Комментарий", commentId));
+                .orElseThrow(() -> {
+                    log.error("Ошибка удаления комментария с ID {} для поста с ID {}. Комментарий не был найден у данного поста!", commentId, postId);
+                    return new ObjectNotFoundException("Комментарий", commentId);
+                });
 
         commentRepository.delete(commentToDelete.getId());
+        log.info("Комментарий с ID {} для поста с ID {} и заголовком {} был успешно удалён!", commentId, postId, post.getTitle());
     }
 }
