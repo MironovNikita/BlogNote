@@ -20,7 +20,6 @@ public class CommentRepositoryImpl implements CommentRepository {
     private final JdbcTemplate jdbcTemplate;
 
     @Override
-    //TODO Тут по идее postId из запроса должен приходить
     public void create(Comment comment, Long postId) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -40,8 +39,6 @@ public class CommentRepositoryImpl implements CommentRepository {
                 commentId);
     }
 
-    //TODO В методе сервиса будет проверка на существование этого самого Comment, поэтому метод будет принимать два комментария.
-    // Одна сущность - это пост с новыми данными, а вторая со старыми. Хотя возможно это не нужно.
     @Override
     public void update(Comment existingComment, CommentRequestDto updateCommentDto) {
         var text = updateCommentDto.getText();

@@ -1,11 +1,16 @@
 package org.blog.app.entity.post;
 
-import lombok.*;
-import org.blog.app.entity.comment.Comment;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.blog.app.entity.comment.CommentResponseDto;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static org.blog.app.common.constants.BlogNoteConstants.POST_TEXT_PREVIEW_SYMBOLS_LIMIT;
 
 @Getter
 @Setter
@@ -24,15 +29,15 @@ public class PostResponseDto {
     private Long likesCount;
 
     private List<String> tags;
-    //TODO Переделать на CommentResponseDto
-    private List<Comment> comments;
+
+    private List<CommentResponseDto> comments;
 
     public String getTextPreview() {
         if (text == null) {
             return "";
         }
-        //TODO Вынести в константу
-        int limit = 200;
+
+        int limit = POST_TEXT_PREVIEW_SYMBOLS_LIMIT;
         if (text.length() <= limit) {
             return text;
         }

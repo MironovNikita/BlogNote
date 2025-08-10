@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-//TODO Добавить логи и интерфейс!
 @Slf4j
 @Service
 @Transactional(readOnly = true)

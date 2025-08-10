@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.blog.app.common.mapper.PostMapper;
 import org.blog.app.entity.paging.Paging;
-import org.blog.app.entity.post.Post;
 import org.blog.app.entity.post.PostRequestDto;
 import org.blog.app.entity.post.PostResponseDto;
 import org.blog.app.service.image.ImageService;
@@ -13,6 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +28,6 @@ public class PostController {
     private final ImageService imageService;
     private final PostMapper postMapper;
 
-    //ЗДЕСЬ ВСЁ НОРМАЛЬНО
     @GetMapping("/")
     public String postsRedirect() {
         return "redirect:/posts";
@@ -69,7 +69,9 @@ public class PostController {
     }
 
     @PostMapping(value = "/posts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String create(@ModelAttribute @Valid PostRequestDto postRqDto) {
+    public String create(@ModelAttribute @Valid PostRequestDto postRqDto, BindingResult bindingResult) throws BindException {
+
+        if (bindingResult.hasErrors()) throw new BindException(bindingResult);
         var createdPostId = postService.create(postRqDto);
         return "redirect:/posts/" + createdPostId;
     }
@@ -83,7 +85,7 @@ public class PostController {
         }
 
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)  // MediaType.IMAGE_PNG и т.п.
+                .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes);
     }
 
@@ -95,7 +97,8 @@ public class PostController {
     }
 
     @PostMapping(value = "posts/{id}/edit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String postEdit(@PathVariable("id") Long id, @ModelAttribute @Valid PostRequestDto postRqDto) {
+    public String postEdit(@PathVariable("id") Long id, @ModelAttribute @Valid PostRequestDto postRqDto, BindingResult bindingResult) throws BindException {
+        if (bindingResult.hasErrors()) throw new BindException(bindingResult);
         postService.update(id, postRqDto);
         return "redirect:/posts/" + id;
     }
@@ -107,12 +110,6 @@ public class PostController {
 
         return "add-post";
     }
-
-    //@PostMapping(value = "/posts/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    //public String update(@PathVariable("id") Long id, @ModelAttribute @Valid PostRequestDto postRqDto) {
-    //    postService.update(id, postRqDto);
-    //    return "redirect:/posts/" + id;
-    //}
 
     @PostMapping("/posts/{id}/delete")
     public String delete(@PathVariable("id") Long id) {

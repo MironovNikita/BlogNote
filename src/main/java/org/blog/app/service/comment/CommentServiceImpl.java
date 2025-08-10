@@ -12,7 +12,6 @@ import org.blog.app.service.post.PostService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-//TODO Добавить логи во все сервисы!
 @Slf4j
 @Service
 @Transactional

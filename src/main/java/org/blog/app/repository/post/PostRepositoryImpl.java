@@ -10,6 +10,8 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 import java.util.function.Function;
@@ -66,16 +68,9 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public Optional<Post> getById(Long id) {
-        return Optional.of(jdbcTemplate.queryForObject(
-                "SELECT * FROM posts WHERE id = ?", (rs, rowNum) -> {
-                    Post post = new Post();
-                    post.setId(rs.getLong("id"));
-                    post.setTitle(rs.getString("title"));
-                    post.setText(rs.getString("text"));
-                    post.setImageData(rs.getBytes("imageData"));
-                    post.setLikesCount(rs.getLong("likesCount"));
-                    return post;
-                }, id));
+        List<Post> results = jdbcTemplate.query(
+                "SELECT * FROM posts WHERE id = ?", (rs, rowNum) -> createPostEntity(rs), id);
+        return results.stream().findFirst();
     }
 
     @Override
@@ -106,12 +101,7 @@ public class PostRepositoryImpl implements PostRepository {
                     ps.setInt(index++, limit);
                     ps.setInt(index, offset);
                 }, (rs, rowNum) -> {
-                    Post post = new Post();
-                    post.setId(rs.getLong("id"));
-                    post.setTitle(rs.getString("title"));
-                    post.setText(rs.getString("text"));
-                    post.setImageData(rs.getBytes("imageData"));
-                    post.setLikesCount(rs.getLong("likesCount"));
+                    Post post = createPostEntity(rs);
                     post.setTags(new ArrayList<>());
                     post.setComments(new ArrayList<>());
                     return post;
@@ -132,11 +122,11 @@ public class PostRepositoryImpl implements PostRepository {
     public boolean hasNextPage(String search, int limit, int offset) {
         String query =
                 "SELECT p.id " +
-                "FROM posts p " +
-                (search.isEmpty() ? "" :
-                        "JOIN posts_tags pt ON p.id = pt.post_id " +
-                                "JOIN tags t ON pt.tag_id = t.id " +
-                                "WHERE t.name LIKE ? ") +
+                        "FROM posts p " +
+                        (search.isEmpty() ? "" :
+                                "JOIN posts_tags pt ON p.id = pt.post_id " +
+                                        "JOIN tags t ON pt.tag_id = t.id " +
+                                        "WHERE t.name LIKE ? ") +
                         "ORDER BY p.id DESC " +
                         "LIMIT ? OFFSET ?";
 
@@ -212,6 +202,16 @@ public class PostRepositoryImpl implements PostRepository {
                 post.getComments().add(comment);
             }
         });
+    }
+
+    private Post createPostEntity(ResultSet rs) throws SQLException {
+        Post post = new Post();
+        post.setId(rs.getLong("id"));
+        post.setTitle(rs.getString("title"));
+        post.setText(rs.getString("text"));
+        post.setImageData(rs.getBytes("imageData"));
+        post.setLikesCount(rs.getLong("likesCount"));
+        return post;
     }
 }
 
