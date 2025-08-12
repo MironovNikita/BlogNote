@@ -68,7 +68,7 @@
 
 <p align="center">
 
-  <img src="https://github.com/MironovNikita/BlogNote/blob/main/images/post-add-form.png">
+  <img src="https://github.com/MironovNikita/BlogNote/blob/main/images/post-page.png">
 
 </p>
 
@@ -101,7 +101,7 @@
 
 <p align="center">
 
-  <img src="https://github.com/MironovNikita/BlogNote/blob/main/images/post-full.png">
+  <img src="https://github.com/MironovNikita/BlogNote/blob/main/images/posts-full.png">
 
 </p>
 
@@ -109,7 +109,7 @@
 
 <p align="center">
 
-  <img src="https://github.com/MironovNikita/BlogNote/blob/main/images/post-sort.png">
+  <img src="https://github.com/MironovNikita/BlogNote/blob/main/images/posts-sort.png">
 
 </p>
 
