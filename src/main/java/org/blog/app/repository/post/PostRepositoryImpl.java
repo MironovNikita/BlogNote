@@ -1,18 +1,22 @@
 package org.blog.app.repository.post;
 
 import lombok.RequiredArgsConstructor;
+import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.post.Post;
+import org.blog.app.entity.tag.Tag;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
-//TODO Вынести @Transactional в слой сервиса!!!
 @Repository
 @RequiredArgsConstructor
 public class PostRepositoryImpl implements PostRepository {
@@ -35,16 +39,19 @@ public class PostRepositoryImpl implements PostRepository {
                 }, keyHolder
         );
 
-        return Objects.requireNonNull(keyHolder.getKey()).longValue();
+        return (Long) Objects.requireNonNull(keyHolder.getKeys()).get("id");
     }
 
-    //TODO В методе сервиса будет проверка на существование этого самого Post, поэтому метод будет принимать два поста. Одна сущность - это пост с новыми данными, а вторая со старыми
     @Override
     public void update(Post postToUpdate, Post existingPost) {
-        if (postToUpdate.getTitle() != null) existingPost.setTitle(postToUpdate.getTitle());
-        if (postToUpdate.getText() != null) existingPost.setText(postToUpdate.getText());
-        if (postToUpdate.getImageData() != null) existingPost.setImageData(postToUpdate.getImageData());
-        if (postToUpdate.getTags() != null) existingPost.setTags(postToUpdate.getTags());
+        if (postToUpdate.getTitle() != null && !postToUpdate.getTitle().isBlank())
+            existingPost.setTitle(postToUpdate.getTitle());
+        if (postToUpdate.getText() != null && !postToUpdate.getText().isBlank())
+            existingPost.setText(postToUpdate.getText());
+        if (postToUpdate.getImageData() != null && postToUpdate.getImageData().length > 0)
+            existingPost.setImageData(postToUpdate.getImageData());
+        if (postToUpdate.getTags() != null && !postToUpdate.getTags().isEmpty())
+            existingPost.setTags(postToUpdate.getTags());
 
         jdbcTemplate.update(
                 "UPDATE posts SET title = ?, text = ?, imageData = ? WHERE id = ?",
@@ -54,46 +61,18 @@ public class PostRepositoryImpl implements PostRepository {
                 existingPost.getId()
         );
 
-        if (postToUpdate.getTags() != null) {
+        if (postToUpdate.getTags() != null && !postToUpdate.getTags().isEmpty()) {
             jdbcTemplate.update("DELETE FROM posts_tags WHERE post_id = ?", existingPost.getId());
         }
     }
 
-    //TODO Дописать комментарии в поиск и теги (в сервисе) + может выбрасывать исключение EmptyResultDataAccessException e
-    // 3 отдельных репо: комменты, посты и теги
     @Override
-    public Post getById(Long id) {
-        return jdbcTemplate.queryForObject(
-                "SELECT * FROM posts WHERE id = ?", (rs, rowNum) -> {
-                    Post post = new Post();
-                    post.setId(rs.getLong("id"));
-                    post.setTitle(rs.getString("title"));
-                    post.setText(rs.getString("text"));
-                    post.setImageData(rs.getBytes("imageData"));
-                    post.setLikesCount(rs.getLong("likesCount"));
-                    return post;
-                }, id);
+    public Optional<Post> getById(Long id) {
+        List<Post> results = jdbcTemplate.query(
+                "SELECT * FROM posts WHERE id = ?", (rs, rowNum) -> createPostEntity(rs), id);
+        return results.stream().findFirst();
     }
 
-    //TODO При get-методах добавить Optional для безопасности!
-    /**
-     *
-     * Post existingPost = postRepository.getLikes(id)
-     *                               .orElseThrow(() -> new ObjectNotFoundException("Пост", id));
-     */
-    public Post getLikes(Long id) {
-        return jdbcTemplate.queryForObject(
-                "SELECT id, likesCount FROM POSTS WHERE id = ?", (rs, rowNum) -> {
-                    Post post = new Post();
-                    post.setId(rs.getLong("id"));
-                    post.setLikesCount(rs.getLong("likesCount"));
-                    return post;
-                }, id);
-    }
-
-    //TODO getall пока под вопросом (пропустил)
-    // Добавить удаление комментариев и тегов - естественно перед этим проверять, есть ли такой пост под таким ID
-    // Это не нужно, т.к. есть ON DELETE CASCADE
     @Override
     public void delete(Long id) {
         jdbcTemplate.update("DELETE FROM posts WHERE id = ?", id);
@@ -102,6 +81,145 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public void updateRating(Post post) {
         jdbcTemplate.update("UPDATE posts SET likescount = ? WHERE id = ?", post.getLikesCount(), post.getId());
+    }
+
+    @Override
+    public List<Post> getAllByParams(String search, int limit, int offset) {
+        List<Post> posts = jdbcTemplate.query(
+                "SELECT p.id, p.title, p.text, p.imageData, p.likesCount " +
+                        "FROM posts p " +
+                        (search.isEmpty() ? "" :
+                                "JOIN posts_tags pt ON p.id = pt.post_id " +
+                                        "JOIN tags t ON pt.tag_id = t.id " +
+                                        "WHERE t.name LIKE ? ") +
+                        "ORDER BY p.id DESC LIMIT ? OFFSET ?",
+                ps -> {
+                    int index = 1;
+                    if (!search.isEmpty()) {
+                        ps.setString(index++, "%" + search + "%");
+                    }
+                    ps.setInt(index++, limit);
+                    ps.setInt(index, offset);
+                }, (rs, rowNum) -> {
+                    Post post = createPostEntity(rs);
+                    post.setTags(new ArrayList<>());
+                    post.setComments(new ArrayList<>());
+                    return post;
+                });
+
+        Map<Long, Post> postMap = posts.stream()
+                .collect(Collectors.toMap(Post::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
+        if (!postMap.isEmpty()) {
+            putTags(postMap);
+            putComments(postMap);
+        }
+
+        return new ArrayList<>(postMap.values());
+    }
+
+    @Override
+    public boolean hasNextPage(String search, int limit, int offset) {
+        String query =
+                "SELECT p.id " +
+                        "FROM posts p " +
+                        (search.isEmpty() ? "" :
+                                "JOIN posts_tags pt ON p.id = pt.post_id " +
+                                        "JOIN tags t ON pt.tag_id = t.id " +
+                                        "WHERE t.name LIKE ? ") +
+                        "ORDER BY p.id DESC " +
+                        "LIMIT ? OFFSET ?";
+
+        List<Long> ids = jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(query);
+            int index = 1;
+            if (!search.isEmpty()) {
+                ps.setString(index++, "%" + search + "%");
+            }
+            ps.setInt(index++, limit + 1);
+            ps.setInt(index, offset);
+            return ps;
+        }, (rs, rowNum) -> rs.getLong("id"));
+
+        return !ids.isEmpty();
+    }
+
+    @Override
+    public Optional<byte[]> findImageDataByPostId(Long id) {
+        List<byte[]> result = jdbcTemplate.query("SELECT imageData FROM posts WHERE id = ?",
+                (rs, rowNum) -> rs.getBytes("imageData"), id);
+
+        return result.stream().findFirst();
+    }
+
+    private void putTags(Map<Long, Post> postMap) {
+        if (postMap.isEmpty()) return;
+
+        String inClause = postMap.keySet().stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String sql = "SELECT pt.post_id, t.id, t.name " +
+                "FROM posts_tags pt " +
+                "JOIN tags t ON pt.tag_id = t.id " +
+                "WHERE pt.post_id IN (" + inClause + ")" +
+                "ORDER BY t.id ";
+
+        jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(sql);
+            int index = 1;
+            for (Long id : postMap.keySet()) {
+                ps.setLong(index++, id);
+            }
+            return ps;
+        }, rs -> {
+            Long postId = rs.getLong("post_id");
+            Post post = postMap.get(postId);
+            if (post != null) {
+                Tag tag = new Tag(rs.getLong("id"), rs.getString("name"));
+                post.getTags().add(tag);
+            }
+        });
+    }
+
+    private void putComments(Map<Long, Post> postMap) {
+        if (postMap.isEmpty()) return;
+
+        String inClause = postMap.keySet().stream()
+                .map(id -> "?")
+                .collect(Collectors.joining(","));
+
+        String sql = "SELECT pc.post_id, c.id, c.text " +
+                "FROM posts_comments pc " +
+                "JOIN comments c ON pc.comment_id = c.id " +
+                "WHERE pc.post_id IN (" + inClause + ")" +
+                "ORDER BY c.id";
+
+        jdbcTemplate.query(con -> {
+            PreparedStatement ps = con.prepareStatement(sql);
+            int index = 1;
+            for (Long id : postMap.keySet()) {
+                ps.setLong(index++, id);
+            }
+            return ps;
+        }, rs -> {
+            Long postId = rs.getLong("post_id");
+            Post post = postMap.get(postId);
+            if (post != null) {
+                Comment comment = new Comment(rs.getLong("id"), rs.getString("text"));
+                post.getComments().add(comment);
+            }
+        });
+    }
+
+    private Post createPostEntity(ResultSet rs) throws SQLException {
+        Post post = new Post();
+        post.setId(rs.getLong("id"));
+        post.setTitle(rs.getString("title"));
+        post.setText(rs.getString("text"));
+        post.setImageData(rs.getBytes("imageData"));
+        post.setLikesCount(rs.getLong("likesCount"));
+        return post;
     }
 }
 

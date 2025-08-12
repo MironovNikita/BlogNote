@@ -2,13 +2,13 @@ package org.blog.app.repository.tag;
 
 import org.blog.app.entity.tag.Tag;
 
-import java.util.Set;
+import java.util.List;
 
 public interface TagRepository {
 
-    void saveTags(Set<Tag> tags, Long postId);
+    void saveTags(List<Tag> tags, Long postId);
 
-    void updateTags(Set<Tag> tags, Long postId);
+    void updateTags(List<Tag> tags, Long postId);
 
-    Set<Tag> getTagsByPostId(Long postId);
+    List<Tag> getTagsByPostId(Long postId);
 }

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Возникла ошибка</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            color: #721c24;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .error-container {
+            max-width: 700px;
+            background: #fff;
+            border: 1px solid #f5c6cb;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #721c24;
+        }
+
+        .validation-errors {
+            margin-top: 20px;
+            padding-left: 20px;
+        }
+
+        .validation-errors li {
+            margin-bottom: 5px;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 20px;
+            color: #004085;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="error-container">
+    <h1>Что-то пошло не так 😢</h1>
+    <p><strong>Сообщение:</strong> <span th:text="${apiError.errorMessage}">Ошибка</span></p>
+    <p><strong>Код ошибки:</strong> <span th:text="${apiError.statusCode}">Код</span></p>
+    <p><strong>Время:</strong> <span th:text="${apiError.time}">--:--</span></p>
+
+    <div th:if="${validationErrors != null}">
+        <h3>Ошибки валидации:</h3>
+        <ul class="validation-errors">
+            <li th:each="err : ${validationErrors}">
+                Поле <strong th:text="${err.key}">Название</strong> —
+                <span th:text="${err.value}">Сообщение</span>
+            </li>
+        </ul>
+    </div>
+
+    <div th:if="${referer}">
+        <a th:href="${referer}" style="color: #004085;">← Вернуться назад</a>
+    </div>
+    <a th:href="@{/posts}">← Вернуться на главную</a>
+</div>
+</body>
+</html>

@@ -1,19 +1,16 @@
 package org.blog.app.entity.post;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.tag.Tag;
 
-import java.util.Queue;
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Post {
 
     private Long id;
@@ -26,7 +23,19 @@ public class Post {
 
     private Long likesCount;
 
-    private Set<Tag> tags;
+    private List<Tag> tags;
 
-    private Queue<Comment> comments;
+    private List<Comment> comments;
+
+    @Override
+    public String toString() {
+        return "Post{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", text='" + text + '\'' +
+                ", likesCount=" + likesCount +
+                ", tags=" + tags +
+                ", comments=" + comments +
+                '}';
+    }
 }

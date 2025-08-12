@@ -1,15 +1,15 @@
 package org.blog.app.entity.post;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.blog.app.entity.comment.Comment;
+import lombok.*;
+import org.blog.app.entity.comment.CommentResponseDto;
 
-import java.util.Queue;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-@Getter
-@Setter
+import static org.blog.app.common.constants.BlogNoteConstants.POST_TEXT_PREVIEW_SYMBOLS_LIMIT;
+
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostResponseDto {
@@ -24,7 +24,35 @@ public class PostResponseDto {
 
     private Long likesCount;
 
-    private String tags;
+    private List<String> tags;
 
-    private Queue<Comment> comments;
+    private List<CommentResponseDto> comments;
+
+    public String getTextPreview() {
+        if (text == null) {
+            return "";
+        }
+
+        int limit = POST_TEXT_PREVIEW_SYMBOLS_LIMIT;
+        if (text.length() <= limit) {
+            return text;
+        }
+        return text.substring(0, limit) + "...";
+    }
+
+    public List<String> getTextParts() {
+        if (text == null || text.isBlank()) return Collections.emptyList();
+        return Arrays.asList(text.split("\\n"));
+    }
+
+    public String getTagsAsText() {
+        if (tags == null || tags.isEmpty()) return "";
+
+        StringBuilder sb = new StringBuilder();
+        for (String tag : tags) {
+            sb.append(tag);
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
 }
