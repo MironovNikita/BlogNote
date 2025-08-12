@@ -2,9 +2,7 @@ package org.blog.app.entity.comment;
 
 import lombok.*;
 
-@ToString
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Comment {

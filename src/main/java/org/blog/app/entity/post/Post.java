@@ -1,9 +1,6 @@
 package org.blog.app.entity.post;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.blog.app.entity.comment.Comment;
 import org.blog.app.entity.tag.Tag;
 
@@ -13,6 +10,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode
 public class Post {
 
     private Long id;

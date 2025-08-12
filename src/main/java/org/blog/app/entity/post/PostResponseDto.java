@@ -1,9 +1,6 @@
 package org.blog.app.entity.post;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.blog.app.entity.comment.CommentResponseDto;
 
 import java.util.Arrays;
@@ -12,8 +9,7 @@ import java.util.List;
 
 import static org.blog.app.common.constants.BlogNoteConstants.POST_TEXT_PREVIEW_SYMBOLS_LIMIT;
 
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostResponseDto {
@@ -58,17 +54,5 @@ public class PostResponseDto {
             sb.append(" ");
         }
         return sb.toString();
-    }
-
-    @Override
-    public String toString() {
-        return "PostResponseDto{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", text='" + text + '\'' +
-                ", likesCount=" + likesCount +
-                ", tags=" + tags +
-                ", comments=" + comments +
-                '}';
     }
 }
