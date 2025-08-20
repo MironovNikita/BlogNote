@@ -18,14 +18,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.blog.app.common.constants.BlogNoteConstants.DATE_FORMAT;
-
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final String ERROR_VIEW = "error";
     private static final String ERROR_ATTRIBUTE = "apiError";
+    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
 
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)

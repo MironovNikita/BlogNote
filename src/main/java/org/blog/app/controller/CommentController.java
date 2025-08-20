@@ -1,4 +1,4 @@
-package org.blog.app.controller.comment;
+package org.blog.app.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -1,18 +1,20 @@
 package org.blog.app.entity.post;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.blog.app.entity.comment.CommentResponseDto;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.blog.app.common.constants.BlogNoteConstants.POST_TEXT_PREVIEW_SYMBOLS_LIMIT;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PostResponseDto {
+
+    private static final int POST_TEXT_PREVIEW_SYMBOLS_LIMIT = 200;
 
     private Long id;
 
