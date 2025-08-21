@@ -170,6 +170,7 @@ spring.servlet.multipart.max-request-size=20MB
     }
 ```
 5) Основные изменения коснулись тестов. Теперь существует три контекста, которые выполняют следующие функции:
+
 5.1. [**Контекст**](https://github.com/MironovNikita/BlogNote/blob/main/src/test/java/org/blog/app/controller/BaseIntegrationTest.java) для интеграционных тестов, проверяющих полный путь от контроллера до базы данных;
 
 5.2 [**Контекст**](https://github.com/MironovNikita/BlogNote/blob/main/src/test/java/org/blog/app/controller/BaseMvcTest.java) для интеграционных тестов контроллеров (MVC);
