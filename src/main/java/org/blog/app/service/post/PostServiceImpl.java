@@ -70,7 +70,7 @@ public class PostServiceImpl implements PostService {
         });
         existingPost.setTags(tagRepository.getTagsByPostId(id));
         existingPost.setComments(commentRepository.getAllByPostId(id));
-        log.info("Пост с ID {} был найден и успешно извлечён из базы данных. Заголовок поста: {}", id, existingPost.getTitle());
+        log.info("Пост с ID {} был найден и успешно извлечён из базы данных. Заголовок поста: \"{}\"", id, existingPost.getTitle());
         return existingPost;
     }
 
@@ -99,7 +99,7 @@ public class PostServiceImpl implements PostService {
             return new ObjectNotFoundException("Пост", id);
         });
         postRepository.delete(id);
-        log.info("Пост с ID {} и заголовком {} был удалён!", id, existingPost.getTitle());
+        log.info("Пост с ID {} и заголовком \"{}\" был удалён!", id, existingPost.getTitle());
     }
 
     @Override
@@ -113,6 +113,6 @@ public class PostServiceImpl implements PostService {
         var likes = existingPost.getLikesCount();
         existingPost.setLikesCount(Boolean.TRUE.equals(like) ? likes + 1 : likes - 1);
         postRepository.updateRating(existingPost);
-        log.info("Рейтинг поста с ID {} и заголовком {} был успешно изменён!", id, existingPost.getTitle());
+        log.info("Рейтинг поста с ID {} и заголовком \"{}\" был успешно изменён!", id, existingPost.getTitle());
     }
 }

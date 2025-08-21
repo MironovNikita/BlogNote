@@ -18,7 +18,7 @@ public class ImageServiceImpl implements ImageService {
     public byte[] getImageBytesByPostId(Long id) {
         var imageData = postRepository.findImageDataByPostId(id).orElse(new byte[0]);
 
-        log.info("Для поста с ID {} был получен массив байт картинки размером {}", id, imageData.length);
+        log.debug("Для поста с ID {} был получен массив байт картинки размером {}", id, imageData.length);
         return imageData;
     }
 }

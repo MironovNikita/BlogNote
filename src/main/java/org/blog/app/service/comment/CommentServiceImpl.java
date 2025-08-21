@@ -27,7 +27,7 @@ public class CommentServiceImpl implements CommentService {
 
         Post post = postService.getById(postId);
         commentRepository.create(commentMapper.toComment(commentDto), postId);
-        log.info("Для поста с ID {} и заголовком {} был создан комментарий длиной {} символов", postId, post.getTitle(), commentDto.getText().length());
+        log.info("Для поста с ID {} и заголовком \"{}\" был создан комментарий длиной {} символов", postId, post.getTitle(), commentDto.getText().length());
     }
 
     @Override
@@ -38,13 +38,13 @@ public class CommentServiceImpl implements CommentService {
                 .filter(com -> com.getId().equals(commentId))
                 .findFirst()
                 .orElseThrow(() -> {
-                    log.error("Комментарий с ID {} не был найден у поста с ID {} и заголовком {}. Обновление не выполнено!", postId, commentId, post.getTitle());
+                    log.error("Комментарий с ID {} не был найден у поста с ID {} и заголовком \"{}\". Обновление не выполнено!", postId, commentId, post.getTitle());
                     return new ObjectNotFoundException("Комментарий", commentId);
                 });
 
         commentRepository.update(commentToUpdate, updateCommentDto);
-        log.info("Комментарий с ID {} для поста с ID {} и заголовком был успешно обновлён. Количество символов в новом комментарии: {}",
-                postId, commentId, updateCommentDto.getText().length());
+        log.info("Комментарий с ID {} для поста с ID {} и заголовком \"{}\" был успешно обновлён. Количество символов в новом комментарии: {}",
+                postId, commentId, post.getTitle(), updateCommentDto.getText().length());
     }
 
     @Override
@@ -59,6 +59,6 @@ public class CommentServiceImpl implements CommentService {
                 });
 
         commentRepository.delete(commentToDelete.getId());
-        log.info("Комментарий с ID {} для поста с ID {} и заголовком {} был успешно удалён!", commentId, postId, post.getTitle());
+        log.info("Комментарий с ID {} для поста с ID {} и заголовком \"{}\" был успешно удалён!", commentId, postId, post.getTitle());
     }
 }
