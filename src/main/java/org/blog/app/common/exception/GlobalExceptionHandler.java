@@ -3,6 +3,7 @@ package org.blog.app.common.exception;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.blog.app.common.exception.dto.ApiError;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindException;
@@ -10,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.sql.SQLException;
@@ -18,14 +20,16 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.blog.app.common.constants.BlogNoteConstants.DATE_FORMAT;
-
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
     private static final String ERROR_VIEW = "error";
     private static final String ERROR_ATTRIBUTE = "apiError";
+    private static final String DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSS";
+
+    @Value("${spring.servlet.multipart.max-file-size}")
+    private String maxFileUploadSize;
 
     @ExceptionHandler(ObjectNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
@@ -100,6 +104,21 @@ public class GlobalExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 getDateTime()
         );
+        model.addAttribute(ERROR_ATTRIBUTE, apiError);
+        addRefererToModel(request, model);
+        return ERROR_VIEW;
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleMaxUploadSizeExceededException(Model model, HttpServletRequest request) {
+        log.error("Ошибка для запроса: {}. Максимальный размер загружаемого файла {}", request.getRequestURI(), maxFileUploadSize);
+        ApiError apiError = new ApiError(
+                "Максимальный размер загружаемого файла " + maxFileUploadSize,
+                HttpStatus.BAD_REQUEST.value(),
+                getDateTime()
+        );
+
         model.addAttribute(ERROR_ATTRIBUTE, apiError);
         addRefererToModel(request, model);
         return ERROR_VIEW;

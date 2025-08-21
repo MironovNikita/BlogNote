@@ -1,7 +1,0 @@
-<Context>
-    <Resource name="BlogNote" auth="Container" type="javax.sql.DataSource"
-              maxTotal="20" maxIdle="10" maxWaitMillis="-1"
-              username="postgres" password="Nikita1995"
-              driverClassName="org.postgresql.Driver"
-              url="jdbc:postgresql://localhost:5432/postgres"/>
-</Context>
