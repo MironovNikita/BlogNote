@@ -33,11 +33,11 @@ public class PostServiceImpl implements PostService {
         post.setLikesCount(0L);
         Long postId = postRepository.create(post);
 
-        log.info("Выполнен запрос на создание поста. ID поста: {}. Заголовок поста: {}", postId, post.getTitle());
+        log.info("Выполнен запрос на создание поста. ID поста: {}. Заголовок поста: \"{}\"", postId, post.getTitle());
 
         if (post.getTags() != null && !post.getTags().isEmpty()) {
             tagRepository.saveTags(post.getTags(), postId);
-            log.info("Выполнено сохранение тегов для поста с ID {} и заголовком: {}", postId, post.getTitle());
+            log.info("Выполнено сохранение тегов для поста с ID {}", postId);
         }
 
         return postId;

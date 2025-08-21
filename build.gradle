@@ -56,8 +56,23 @@ test {
 	jvmArgs += ["-XX:+EnableDynamicAgentLoading"]
 
 	testLogging {
+		events("passed", "skipped", "failed")
+		exceptionFormat = "full"
+
 		lifecycle {
 			showStandardStreams = true
+		}
+	}
+
+	afterSuite { desc, result ->
+		if (!desc.parent) {
+			println "--------------------------------------------------"
+			println "Тестов всего: ${result.testCount}"
+			println "Успешно:      ${result.successfulTestCount}"
+			println "Провалено:    ${result.failedTestCount}"
+			println "Пропущено:    ${result.skippedTestCount}"
+			println "Результат:    ${result.resultType}"
+			println "--------------------------------------------------"
 		}
 	}
 }
